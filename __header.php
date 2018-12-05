@@ -72,7 +72,7 @@ nav a:hover {
       <li><? $pname=="bsmember"?'active':''?><a href="icmember.php">網紅會員</a></li>
       <li><? $pname=="icmember"?'active':''?><a href="bsmember.php">廠商會員</a></li>
       <li><? $pname=="case_control"?'active':''?><a href="case_control.php">專案管理</a></li>
-      <li><? $pname=="statistics"?'active':''?><a href="bs_order.php">訂單管理</a></li>
+      <li><? $pname=="bs_order"?'active':''?><a href="bs_order.php">訂單管理</a></li>
       <li><? $pname=="problem_control"?'active':''?><a href="problem_control.php">問題回報</a></li>
     </ul>
 </nav>
