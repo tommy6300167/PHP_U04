@@ -1,13 +1,46 @@
 <?php
 require __DIR__. '/_connect_db.php';
+$pname = 'icmember';
 
-$pname = 'icmember'
 
+//-------------分頁功能↓
+
+$per_page = 10; //每頁有幾筆
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1; // 第幾頁
+$t_sql = "SELECT COUNT(1) FROM icmember";
+$total_rows = $pdo->query($t_sql)->fetch()[0]; //總筆數
+$total_pages = ceil($total_rows/$per_page); //總頁數
+
+// 限定頁碼範圍
+if ($page<1) {
+    header('Location: icmember.php');
+    exit;
+}
+if ($page>$total_pages) {
+    header('Location: icmember.php?page='. $total_pages);
+    exit;
+}
+
+//-------------分頁功能↑
+
+
+
+$sql = sprintf(
+  "SELECT * FROM icmember ORDER BY IC_sid DESC LIMIT %s, %s",
+  ($page-1)*$per_page,
+  $per_page
+);
+$stmt = $pdo->query($sql);
 ?>
 
 <?php include __DIR__. '/__header.php'; ?>
 
+
 <style>
+
+.{
+  font-family:"微軟正黑體";
+}
 
 h1{
   font-size: 30px;
@@ -25,9 +58,9 @@ table{
   background-color: rgba(255,255,255,0.3);
  }
 .tbl-content{
-  height:300px;
-  overflow-x:auto;
-  margin-top: 0px;
+   /* height:300px;  */
+  /* overflow-x:auto;  */
+  /* margin-top: 0px; */
   border: 1px solid rgba(255,255,255,0.3);
 }
 th{
@@ -57,7 +90,6 @@ section{
   margin: 50px;
 }
 
-
 /* follow me template */
 .made-with-love {
   margin-top: 40px;
@@ -83,6 +115,10 @@ section{
   text-decoration: underline;
 }
 
+.table_page{
+  background:#444;
+}
+
 
 /* for custom scrollbar for webkit browser*/
 
@@ -97,36 +133,59 @@ section{
 }
 </style>
 
+
+
+
 <section>
   <!--for demo wrap-->
-  <h3>網紅會員資料清單</h3>
   <div class="tbl-header">
     <table cellpadding="0" cellspacing="0" border="0">
       <thead>
         <tr>
-          <th>會員編號</th>
-          <th>網紅名稱</th>
-          <th>網紅社群媒體</th>
-          <th>網紅狀態</th>
-          <th></th>
-        </tr>
+          <th>id</th>
+          <th>帳號</th>
+          <th>名稱</th>
+          <th>性別</th>
+          <th>擅長社群</th>
+          <th>最低接案金額</th>
+          <th>經手業配數</th>
+          <th>註冊時間</th>
+        </tr>	
       </thead>
     </table>
   </div>
+
   <div class="tbl-content">
     <table cellpadding="0" cellspacing="0" border="0">
-      <tbody>
-        <tr>
-          <td>AAC</td>
-          <td>AUSTRALIAN COMPANY </td>
-          <td>$1.38</td>
-          <td>+2.01</td>
-          <td>-0.36%</td>
-        </tr>
-      </tbody>
+    <tbody>
+  <?php
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
+  ?>
+      <tr>
+        <td><?= $row['IC_sid'] ?></td>
+        <td><?= $row['IC_email'] ?></td>
+        <td><?= $row['IC_name'] ?></td>
+        <td><?= $row['IC_gender'] ?></td>
+        <td><?= $row['IC_media'] ?></td>
+        <td><?= $row['IC_price'] ?></td>
+        <td><?= $row['IC_case'] ?></td>
+        <td><?= $row['IC_create_at'] ?></td>
+     </tr>
+        <?php endwhile; ?>
+        </tbody>
     </table>
+
+    
+
   </div>
+  <nav class="table_page" aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item <?= $page==1 ? 'disabled' : ''; ?>"><a class="page-link" href="?page=1">&lt;&lt;</a></li>
+            <li class="page-item <?= $page==1 ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $page-1 ?>">&lt;</a></li>
+            <li class="page-item"><a class="page-link"><?= $page. '/'. $total_pages ?></a></li>
+            <li class="page-item <?= $page==$total_pages ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $page+1 ?>">&gt;</a></li>
+            <li class="page-item <?= $page==$total_pages ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $total_pages ?>">&gt;&gt;</a></li>
+        </ul>
+    </nav>
 </section>
 
-
-<!-- follow me template -->

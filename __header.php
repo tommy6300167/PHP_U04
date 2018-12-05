@@ -3,19 +3,27 @@
 body, header, nav, main {
   margin: 0;
   padding: 0;
+  font-family:"微軟正黑體";
+  font-weight:600;
 }
 
 body {
-  background: #3e606f;
+  background: #444;
   font-family: "Helvetica", sans-sarif;
   font-size: 16px;
   color: #fcfff5;
 }
 
 header {
-  text-align: center;
-  height: 100px;
-  padding-top: 50px;
+  text-align: left;
+  height: 45px;
+}
+
+header h3{
+  margin:15px 50px;
+  line-height: 30px;
+  
+
 }
 
 
@@ -64,16 +72,16 @@ nav a:hover {
 </style>
 
 <header>
-  <h1>Brand Name</h1>
+  <h3>You04</h3>
 </header>
 <nav id="topNav">
     <ul>
-      <li><? $pname=="index"?'active':''?>
-      <li><? $pname=="bsmember"?'active':''?><a href="icmember.php">網紅會員</a></li>
-      <li><? $pname=="icmember"?'active':''?><a href="bsmember.php">廠商會員</a></li>
-      <li><? $pname=="case_control"?'active':''?><a href="case_control.php">專案管理</a></li>
-      <li><? $pname=="bs_order"?'active':''?><a href="bs_order.php">訂單管理</a></li>
-      <li><? $pname=="problem_control"?'active':''?><a href="problem_control.php">問題回報</a></li>
+      <li><?php $pname=="index"?'active':''?>
+      <li><?php $pname=="bsmember"?'active':''?><a href="icmember.php">網紅會員</a></li>
+      <li><?php $pname=="icmember"?'active':''?><a href="bsmember.php">廠商會員</a></li>
+      <li><?php $pname=="case_control"?'active':''?><a href="case_control.php">專案管理</a></li>
+      <li><?php $pname=="statistics"?'active':''?><a href="statistics.php">訂單管理</a></li>
+      <li><?php $pname=="label_control"?'active':''?><a href="label_control.php">問題回報</a></li>
     </ul>
 </nav>
 
