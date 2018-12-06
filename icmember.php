@@ -3,6 +3,20 @@ require __DIR__. '/_connect_db.php';
 $pname = 'icmember';
 
 
+//------計算加總↓
+$d_sql = "SELECT * FROM icmember ";
+$today = date("Y-m-d");
+$d_sql.='WHERE `IC_create_at` like "'.$today.'%"';
+$stmtToday = $pdo->query($d_sql);
+$rr = $stmtToday->fetchAll(PDO::FETCH_ASSOC);
+$count = count($rr);
+
+
+// $getDate= date("Y-m-d");
+// $d_sql = "SELECT COUNT(1) * FROM ICmember where IC_creat_at like $getDate";
+// $d_sql = "SELECT COUNT(1) * FROM ICmember where IC_creat_at like $getDate";
+
+
 //-------------分頁功能↓
 
 $per_page = 10; //每頁有幾筆
@@ -10,6 +24,9 @@ $page = isset($_GET['page']) ? intval($_GET['page']) : 1; // 第幾頁
 $t_sql = "SELECT COUNT(1) FROM icmember";
 $total_rows = $pdo->query($t_sql)->fetch()[0]; //總筆數
 $total_pages = ceil($total_rows/$per_page); //總頁數
+
+
+
 
 // 限定頁碼範圍
 if ($page<1) {
@@ -38,10 +55,6 @@ $stmt = $pdo->query($sql);
 
 <style>
 
-.{
-  font-family:"微軟正黑體";
-}
-
 h1{
   font-size: 30px;
   color: #fff;
@@ -53,6 +66,9 @@ h1{
 table{
   width:100%;
   table-layout: fixed;
+}
+section{
+  font-family:"微軟正黑體";
 }
 .tbl-header{
   background-color: rgba(255,255,255,0.3);
@@ -131,15 +147,41 @@ section{
 ::-webkit-scrollbar-thumb {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
 }
+
+#container {
+  /* position:relative; */
+  margin-top:50px;
+  min-width: 310px;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+  background:rgb(100,100,100);
+}
 </style>
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/series-label.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
 
 
 
 
 <section>
+<div id="container"></div>
   <!--for demo wrap-->
+  今日新增網紅：<?= $count; ?>&nbsp 人<br>
+  總計網紅：<?= $total_rows; ?> &nbsp 人
+  <!-- &nbsp &nbsp &nbsp &nbsp -->
+
+  <br>
+  <br>
   <div class="tbl-header">
+
     <table cellpadding="0" cellspacing="0" border="0">
+    
       <thead>
         <tr>
           <th>id</th>
@@ -189,3 +231,71 @@ section{
     </nav>
 </section>
 
+
+<script>
+
+Highcharts.chart('container', {
+
+title: {
+  text: '每日新增人數'
+},
+
+// subtitle: {
+//   text: 'Source: thesolarfoundation.com'
+// },
+
+yAxis: {
+  title: {
+    text: '人數'
+  }
+},
+legend: {
+  layout: 'vertical',
+  align: 'right',
+  verticalAlign: 'middle'
+},
+
+plotOptions: {
+  series: {
+    label: {
+      connectorAllowed: false
+    },
+    pointStart: 2010
+  }
+},
+
+series: [{
+  name: '網紅',
+  data: [43934, 52503, 57177, 69658, 97031, 119931, 137133, 154175]
+}],
+// }, {
+//   name: 'Manufacturing',
+//   data: [24916, 24064, 29742, 29851, 32490, 30282, 38121, 40434]
+// }, {
+//   name: 'Sales & Distribution',
+//   data: [11744, 17722, 16005, 19771, 20185, 24377, 32147, 39387]
+// }, {
+//   name: 'Project Development',
+//   data: [null, null, 7988, 12169, 15112, 22452, 34400, 34227]
+// }, {
+//   name: 'Other',
+//   data: [12908, 5948, 8105, 11248, 8989, 11816, 18274, 18111]
+// }],
+
+responsive: {
+  rules: [{
+    condition: {
+      maxWidth: 400
+    },
+    chartOptions: {
+      legend: {
+        layout: 'horizontal',
+        align: 'center',
+        verticalAlign: 'bottom'
+      }
+    }
+  }]
+}
+
+});
+</script>
