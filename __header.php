@@ -3,19 +3,27 @@
 body, header, nav, main {
   margin: 0;
   padding: 0;
+  font-family:"微軟正黑體";
+  font-weight:600;
 }
 
 body {
-  background: #3e606f;
+  background: #444;
   font-family: "Helvetica", sans-sarif;
   font-size: 16px;
   color: #fcfff5;
 }
 
 header {
-  text-align: center;
-  height: 100px;
-  padding-top: 50px;
+  text-align: left;
+  height: 45px;
+}
+
+header h3{
+  margin:15px 50px;
+  line-height: 30px;
+  
+
 }
 
 
@@ -68,7 +76,7 @@ nav a.active{
 </style>
 
 <header>
-  <h1>Brand Name</h1>
+  <h3>You04</h3>
 </header>
 <nav id="topNav">
     <ul>
