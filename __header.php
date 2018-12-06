@@ -53,6 +53,9 @@ nav a {
 nav a:hover {
   background: #193449;
 }
+nav a.active{
+  background: #193449;
+}
 
 /* Sticky Navigation */
 .navScrolled {
@@ -61,6 +64,7 @@ nav a:hover {
   z-index: 1;
   box-shadow: 0px 1px 5px #000;
 }
+
 </style>
 
 <header>
@@ -68,12 +72,12 @@ nav a:hover {
 </header>
 <nav id="topNav">
     <ul>
-      <li><? $pname=="index"?'active':''?>
-      <li><? $pname=="bsmember"?'active':''?><a href="icmember.php">網紅會員</a></li>
-      <li><? $pname=="icmember"?'active':''?><a href="bsmember.php">廠商會員</a></li>
-      <li><? $pname=="case_control"?'active':''?><a href="case_control.php">專案管理</a></li>
-      <li><? $pname=="bs_order"?'active':''?><a href="bs_order.php">訂單管理</a></li>
-      <li><? $pname=="problem_control"?'active':''?><a href="problem_control.php">問題回報</a></li>
+      <li><a class="<?= $pname=='index'?'active':''?>"></a></li>
+      <li><a class="<?= $pname=='icmember'?'active':''?>" href="icmember.php">網紅會員</a></li>
+      <li><a class="<?= $pname=='bsmember'?'active':''?>" href="bsmember.php">廠商會員</a></li>
+      <li><a class="<?= $pname=='case_control'?'active':''?>" href="case_control.php">專案管理</a></li>
+      <li><a class="<?= $pname=='bs_order'?'active':''?>" href="bs_order.php">訂單管理</a></li>
+      <li><a class="<?= $pname=='label_control'?'active':''?>" href="label_control.php">問題回報</a></li>
     </ul>
 </nav>
 
