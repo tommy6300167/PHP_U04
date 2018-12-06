@@ -1,16 +1,14 @@
 <?php
 require __DIR__. '/_connect_db.php';
 
-$pname = 'statistics';
+$pname = 'bs_order';
 
 
 ?>
 
-<?php include __DIR__. '/__header.php'; ?>
+
 
 <?php 
-$pname = 'bs_order';
-
 $per_page = 5;
 $page = isset($_GET['page'])?intval($_GET['page']):1;
 
@@ -30,14 +28,49 @@ if($page>$total_pages) {
 $sql = sprintf("SELECT * FROM bs_order ORDER BY BO_sid DESC LIMIT %s, %s",($page-1)*$per_page,$per_page);
 $stmt = $pdo->query($sql);
 
+
+$sql = "SELECT * FROM bs_order "; 
+
+//算今日所得
+$today = date("Y-m-d");
+// echo $today."<br>";
+$sqlToday=$sql.'WHERE `BO_date` like "'.$today.'%"';
+// echo $sqlToday."<br>";
+$stmtToday = $pdo->query($sqlToday);
+$tt = $stmtToday->fetchAll(PDO::FETCH_ASSOC);
+// echo var_dump($rr);
+$todayPoint=0;
+foreach($tt as $t){
+  $todayPoint += $t['BO_amount'];
+}
+
+//算該月所得
+$thisMonth = date("Y-m");
+// echo $thisMonth;
+$sqlThisMonth=$sql.'WHERE `BO_date` like "'.$thisMonth.'%"';
+// echo $sqlThisMonth."<br>";
+$stmtThisMonth = $pdo->query($sqlThisMonth);
+$mm = $stmtThisMonth->fetchAll(PDO::FETCH_ASSOC);
+// echo var_dump($mm);
+$thisMonthPoint=0;
+foreach($mm as $m){
+  $thisMonthPoint += $m['BO_amount'];
+}
+// echo $thisMonthPoint;
 ?>
+
+<?php include __DIR__. '/__header.php'; ?>
+
 <head>
   <link rel="stylesheet" type="text/css" href="tableStyle.css">
 </head>
 <section>
   <!--for demo wrap-->
   <h3>訂單管理</h3>
-
+<?php 
+echo "今日購買金額:".$todayPoint."\t"."\t";
+echo "本月購買金額:".$thisMonthPoint;
+?>
     <table cellpadding="0" cellspacing="0" border="0">
       <thead class="tbl-header">
         <tr>
@@ -52,7 +85,8 @@ $stmt = $pdo->query($sql);
         </tr>
       </thead>
       <tbody class="tbl-content">
-      <?php while($r = $stmt->fetch(PDO::FETCH_ASSOC)): ?>
+      <?php while($r = $stmt->fetch(PDO::FETCH_ASSOC)): 
+        ?>
         <tr>
             <td><?= $r['BO_sid'] ?></td>
             <td><?= $r['BS_email'] ?></td>
@@ -63,7 +97,8 @@ $stmt = $pdo->query($sql);
             <!-- <td><?= $r['BO_rename'] ?></td> -->
             <!-- <td><?= $r['BO_receipt'] ?></td> -->
         </tr>
-        <?php  endwhile; ?>
+        <?php  endwhile; 
+        ?>
       </tbody>
     </table>
 
