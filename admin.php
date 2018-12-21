@@ -55,16 +55,6 @@ $stmt = $pdo->query($sql);
 
 <style>
 
-
-  .{
-    font-family:"微軟正黑體";
-  }
-
-  #container{
-    width:100%;
-    margin:0 auto;
-  }
-
   h1{
     font-size: 30px;
     color: #fff;
@@ -81,18 +71,11 @@ $stmt = $pdo->query($sql);
     background-color: rgba(255,255,255,0.3);
   }
   .tbl-content{
-    /* height:300px;  */
-    /* overflow-x:auto;  */
-    /* margin-top: 0px; */
+    height:300px;
+    overflow-x:auto;
+    margin-top: 0px;
     border: 1px solid rgba(255,255,255,0.3);
   }
-
- 
-  i{
-    color:#fff;
-    font-size:14px;
-  }
-
   th{
     padding: 20px 15px;
     text-align: left;
@@ -100,7 +83,6 @@ $stmt = $pdo->query($sql);
     font-size: 12px;
     color: #fff;
     text-transform: uppercase;
-    text-align:center;
   }
   td{
     padding: 15px;
@@ -110,45 +92,10 @@ $stmt = $pdo->query($sql);
     font-size: 12px;
     color: #fff;
     border-bottom: solid 1px rgba(255,255,255,0.1);
-    text-align:center;
   }
 
 
-  .th1{
-    width:6%;
-  }
-  .th2{
-    width:16%;
-  }
-  .th3{
-    width:16%;
-  }
-  .th4{
-    width:6%;
-  }
-  .th5{
-    width:11%;
-  }
-  .th6{
-    width:8%;
-  }
-
-  .th7{
-    width:8%;
-  }
-
-  .create_time{
-    width:18%;
-    text-align:center;
-  }
-
-  .th9{
-    width:5%;
-  }
-  .th10{
-    width:6%;
-  }
-
+  /* demo styles */
 
   @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,300,700);
 
@@ -156,6 +103,8 @@ $stmt = $pdo->query($sql);
     margin: 50px;
   }
 
+
+  /* follow me template */
   .made-with-love {
     margin-top: 40px;
     padding: 10px;
@@ -179,11 +128,16 @@ $stmt = $pdo->query($sql);
   .made-with-love a:hover {
     text-decoration: underline;
   }
-
-  .table_page{
-    background:#444;
+  #endCase{
+    color:white;
+    text-decoration:none;
+    border:1px solid white;
+    background-color:#78869a9e;
+    padding:10px;
   }
 
+
+  /* for custom scrollbar for webkit browser*/
 
   ::-webkit-scrollbar {
       width: 6px;
@@ -194,12 +148,10 @@ $stmt = $pdo->query($sql);
   ::-webkit-scrollbar-thumb {
       -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
   }
-
 </style>
 
-
 <section>
-<h3>網紅會員資料清單</h3>
+<h3>已發佈專案管理</h3>
 <div id="container">
   <!--for demo wrap-->
   今日新增網紅：<?= $count; ?>&nbsp 人<br>
@@ -244,11 +196,11 @@ $stmt = $pdo->query($sql);
         <td class="th7"><?= $row['IC_case'] ?></td>
         <td class="create_time"><?= $row['IC_create_at'] ?></td>
         <td class="th9">
-          <a href="javascript:del_it(<?= $row['IC_sid'] ?>)">
+          <a href="javascript:del_it(<?= $row['IC_sid'] ?>)" style="font-size: 2em; color: white;">
           <i class="far fa-trash-alt ext-center"></i></a>
         </td>
         <td class="th10">
-          <a href="ic_edit.php?IC_sid=<?= $row['IC_sid'] ?>">
+          <a href="ic_edit.php?IC_sid=<?= $row['IC_sid'] ?>" style="font-size: 2em; color: white;">
           <i class="far fa-eye"></i></a>
         </td>
      </tr>

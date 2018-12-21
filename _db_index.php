@@ -10,7 +10,7 @@ if(isset($_POST['account'])){
 
     $doChecked = true;
 
-    $sql = sprintf("SELECT `account`, `password`, `permission`
+    $sql = sprintf("SELECT `account`,`nickname`, `password`, `permission`
             FROM `u04_admin` WHERE `account`=%s AND `password`=%s",
             $pdo->quote($_POST['account']),
             $pdo->quote($_POST['password'])
@@ -32,7 +32,7 @@ if(isset($_POST['account'])){
     // echo $_SERVER['HTTP_REFERER'];
 }
 
-
+// echo $row;
 
 ?>
 
@@ -185,96 +185,97 @@ if(isset($_POST['account'])){
 
   @import "compass/css3";
 
-@import url(https://fonts.googleapis.com/css?family=Lato:300,400,700|Dosis:200,400,600);
+  @import url(https://fonts.googleapis.com/css?family=Lato:300,400,700|Dosis:200,400,600);
 
-body {
-  background-color: #252527;
-}
-h1 {
-  font-family: Dosis;
-  font-weight: 200;
-  position: absolute;
-  text-align: center;
-  display: block;
-  color: #fff;
-  top: 50%;
-  width: 100%;
-  margin-top: -55px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  -webkit-transform-style: preserve-3d;
-  -moz-transform-style: preserve-3d;
-  transform-style: preserve-3d;
-  -webkit-transform: translate3d(0,0,0);
-  -moz-transform: translate3d(0,0,0);
-  transform: translate3d(0,0,0);
-  opacity: 0;
-  -webkit-animation: anim 3.2s ease-out forwards 1s;
-  animation: anim 3.2s ease-out forwards 1s;
-}
-strong {
-  display: block;
-  font-weight: 400;
-}
-
-
-@-webkit-keyframes anim {
-  0% {
-    text-shadow: 0 0 50px #fff;
-    letter-spacing: 80px;
+  body {
+    background-color: #252527;
+  }
+  h1 {
+    font-family: Dosis;
+    font-weight: 200;
+    position: absolute;
+    text-align: center;
+    display: block;
+    color: #fff;
+    top: 50%;
+    width: 100%;
+    margin-top: -55px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    -webkit-transform-style: preserve-3d;
+    -moz-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-transform: translate3d(0,0,0);
+    -moz-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
     opacity: 0;
-    -webkit-transform: rotateY(-90deg);
+    -webkit-animation: anim 3.2s ease-out forwards 1s;
+    animation: anim 3.2s ease-out forwards 1s;
   }
-  50% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    -webkit-transform: rotateY(0deg);
-  }
-  75% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    -webkit-transform: rotateY(0deg) translateZ(60px);
-  }
-  100% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    letter-spacing: 8px;
-    -webkit-transform: rotateY(0deg) translateZ(100px);
+  strong {
+    display: block;
+    font-weight: 400;
   }
 
-}
-@keyframes anim {
-  0% {
-    text-shadow: 0 0 50px #fff;
-    letter-spacing: 80px;
-    opacity: 0;
-    -moz-transform: rotateY(-90deg);
-  }
-  50% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    -moz-transform: rotateY(0deg);
-  }
-  75% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    -moz-transform: rotateY(0deg) translateZ(60px);
-  }
-  100% {
-    text-shadow: 0 0 1px #fff;
-    opacity: 0.8;
-    letter-spacing: 8px;
-    -moz-transform: rotateY(0deg) translateZ(100px);
-  }
 
-}
+  @-webkit-keyframes anim {
+    0% {
+      text-shadow: 0 0 50px #fff;
+      letter-spacing: 80px;
+      opacity: 0;
+      -webkit-transform: rotateY(-90deg);
+    }
+    50% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      -webkit-transform: rotateY(0deg);
+    }
+    75% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      -webkit-transform: rotateY(0deg) translateZ(60px);
+    }
+    100% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      letter-spacing: 8px;
+      -webkit-transform: rotateY(0deg) translateZ(100px);
+    }
+
+  }
+  @keyframes anim {
+    0% {
+      text-shadow: 0 0 50px #fff;
+      letter-spacing: 80px;
+      opacity: 0;
+      -moz-transform: rotateY(-90deg);
+    }
+    50% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      -moz-transform: rotateY(0deg);
+    }
+    75% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      -moz-transform: rotateY(0deg) translateZ(60px);
+    }
+    100% {
+      text-shadow: 0 0 1px #fff;
+      opacity: 0.8;
+      letter-spacing: 8px;
+      -moz-transform: rotateY(0deg) translateZ(100px);
+    }
+
+  }
 </style>
 
 <div class="container">
 
     <?php if(isset($doChecked)):  ?>
         <?php if(isset($_SESSION['user'])):  ?>    
-        <h1 class="welcome">Welcome <strong>To U04</strong></h1>     
+          
+        <h1 class="welcome">Welcome <strong><?=$row['nickname']?> To U04</strong></h1>     
             <script>
                 var come_from = "<?php 
                 echo empty($_SESSION['come_from']) ?  '_db_index.php' :  'case_control.php';
@@ -282,7 +283,7 @@ strong {
                 ?>";
                 setTimeout(function(){
                       location.href = come_from;
-                }, 3000);
+                }, 4000);
             </script>
         <?php else: ?>
             <div id="main_alert" class="alert alert-danger" role="alert">
@@ -329,7 +330,6 @@ strong {
 
 <script
   src="https://code.jquery.com/jquery-3.3.1.min.js"
-  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
   crossorigin="anonymous"></script>
     <script>
     let myform = $('#myform');

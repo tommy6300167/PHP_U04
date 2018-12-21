@@ -1,1111 +1,321 @@
 <?php
 require __DIR__. '/_connect_db.php';
+$pname = 'problem_control.php';
 
-$pname = 'problem_control'
+
+
+//計算問題數量
+$d_sql = "SELECT * FROM contact_us";
+$today = date("Y-m-d");
+$d_sql.= ' WHERE `cu_time` LIKE "'.$today.'%"';
+
+$stmtToday = $pdo->query($d_sql);
+$rr = $stmtToday -> fetchAll(PDO::FETCH_ASSOC);
+$count = count($rr);
+
+
+//-------------分頁功能↓
+
+$per_page = 10; //每頁有幾筆
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1; // 第幾頁
+$t_sql = "SELECT COUNT(1) FROM icmember";
+$total_rows = $pdo->query($t_sql)->fetch()[0]; //總筆數
+$total_pages = ceil($total_rows/$per_page); //總頁數
+
+// 限定頁碼範圍
+if ($page<1) {
+    header('Location: problem_control.php');
+    exit;
+}
+if ($page>$total_pages) {
+    header('Location: problem_control.php?page='. $total_pages);
+    exit;
+}
+//-------------分頁功能↑
+
+$sql = sprintf(
+  "SELECT * FROM contact_us ORDER BY sid DESC LIMIT %s, %s",
+  ($page-1)*$per_page,
+  $per_page
+);
+$stmt = $pdo->query($sql);
+
+$bs_sql = 
+  "SELECT COUNT(*) FROM `contact_us` WHERE `cu_usertype` LIKE '%廠商%' ";
+  $bs_stmt = $pdo->query($bs_sql);
+  $bs = $bs_stmt->fetch(PDO::FETCH_NUM)[0];
+  //echo json_encode($bs, JSON_UNESCAPED_UNICODE);
+
+$ic_sql = 
+  "SELECT COUNT(*) FROM `contact_us` WHERE `cu_usertype` LIKE '%網紅%' ";
+  $ic_stmt = $pdo->query($ic_sql);
+  $ic = $ic_stmt->fetch(PDO::FETCH_NUM)[0];
+  // echo json_encode([
+  //   'vender' => $bs,
+  //   'yts' => $ic
+
+  // ], JSON_UNESCAPED_UNICODE);
+
+$solve_sql =
+    "SELECT COUNT(*) FROM `contact_us` WHERE `status` LIKE '%1%'";
+    $solve_stmt = $pdo->query($solve_sql);
+    $solve = $solve_stmt->fetch(PDO::FETCH_NUM)[0];
+
+$unsolve_sql =
+    "SELECT COUNT(*) FROM `contact_us` WHERE `status` LIKE '%0%'";
+    $unsolve_stmt = $pdo->query($unsolve_sql);
+    $unsolve = $unsolve_stmt->fetch(PDO::FETCH_NUM)[0];
 
 ?>
 
-<?php include __DIR__. '/__header.php'; ?>
-
+<?php include __DIR__. '/head.php'; ?>
+<?php include __DIR__. '/_nav.php'; ?>
 
 
 <style>
-body {
-  padding: 0;
-  margin: 0;
-}
-
-.full-baby-container {
-  position: absolute;
-  height: auto;
-  min-height: 100vh;
-  width: 100%;
-  background-color: #86b1c2;
-  overflow-x: hidden;
-}
-
-.baby-container {
-  position: relative;
-  height: 530px;
-  width: 220px;
-  margin: auto;
-  top: 10vh;
-  -moz-transform: rotate(-39deg);
-  -ms-transform: rotate(-39deg);
-  -webkit-transform: rotate(-39deg);
-  transform: rotate(-39deg);
-}
-
-.towel {
-  position: relative;
-  top: 5%;
-  height: 90%;
-  width: 90%;
-  background-color: #e8dcd8;
-  margin: auto;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  -moz-box-shadow: -25px -25px 0px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: -25px -25px 0px rgba(0, 0, 0, 0.1);
-  box-shadow: -25px -25px 0px rgba(0, 0, 0, 0.1);
-  -moz-animation: towel-anim;
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: towel-anim;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: towel-anim;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes towel-anim {
-  0% {
-    left: -4%;
+  .{
+    font-family:"微軟正黑體";
   }
-  50% {
-    left: 4%;
+
+  h1{
+    font-size: 30px;
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 15px;
   }
-  100% {
-    left: -4%;
+  table{
+    width:100%;
+    table-layout: fixed;
   }
-}
-.towel-band {
-  position: absolute;
-  height: 30px;
-  width: 100%;
-  top: 60%;
-  background: #cdd3d7;
-  -moz-animation: towel-band-anim;
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: towel-band-anim;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: towel-band-anim;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes towel-band-anim {
-  0% {
-    -moz-transform: rotateY(0deg) skewY(-30deg);
-    -ms-transform: rotateY(0deg) skewY(-30deg);
-    -webkit-transform: rotateY(0deg) skewY(-30deg);
-    transform: rotateY(0deg) skewY(-30deg);
-    top: 50%;
+  .tbl-header{
+    background-color: rgba(255,255,255,0.3);
   }
-  50% {
-    -moz-transform: rotateY(0deg) skewY(-30deg);
-    -ms-transform: rotateY(0deg) skewY(-30deg);
-    -webkit-transform: rotateY(0deg) skewY(-30deg);
-    transform: rotateY(0deg) skewY(-30deg);
-    top: 54%;
+  .tbl-content{
+    /* height:300px;  */
+    /* overflow-x:auto;  */
+    /* margin-top: 0px; */
+    border: 1px solid rgba(255,255,255,0.3);
   }
-  100% {
-    -moz-transform: rotateY(0deg) skewY(-30deg);
-    -ms-transform: rotateY(0deg) skewY(-30deg);
-    -webkit-transform: rotateY(0deg) skewY(-30deg);
-    transform: rotateY(0deg) skewY(-30deg);
-    top: 50%;
+  th{
+    padding: 20px 15px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 12px;
+    color: #fff;
+    text-transform: uppercase;
   }
-}
-.baby-face {
-  position: absolute;
-  height: 150px;
-  width: 150px;
-  background-color: #f9c19f;
-  top: 10%;
-  left: 17%;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  -moz-animation: face-anim;
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: face-anim;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: face-anim;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
+  td{
+    padding: 15px;
+    text-align: center;
+    vertical-align:middle;
+    font-weight: 300;
+    font-size: 12px;
+    color: #fff;
+    border-bottom: solid 1px rgba(255,255,255,0.1);
 
-@keyframes face-anim {
-  0% {
-    left: 7%;
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
   }
-  20% {
-    -moz-transform: rotateY(10deg);
-    -ms-transform: rotateY(10deg);
-    -webkit-transform: rotateY(10deg);
-    transform: rotateY(10deg);
+
+  i{
+    color:#fff;
+    font-size:14px;
   }
-  50% {
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-    left: 27%;
+
+  @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,300,700);
+
+  section{
+    margin: 50px;
   }
-  60% {
-    -moz-transform: rotateY(10deg);
-    -ms-transform: rotateY(10deg);
-    -webkit-transform: rotateY(10deg);
-    transform: rotateY(10deg);
+
+  .made-with-love {
+    margin-top: 40px;
+    padding: 10px;
+    clear: left;
+    text-align: center;
+    font-size: 10px;
+    font-family: arial;
+    color: #fff;
   }
-  100% {
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-    left: 7%;
+  .made-with-love i {
+    font-style: normal;
+    color: #F50057;
+    font-size: 14px;
+    position: relative;
+    top: 2px;
   }
-}
-.blonde-hair {
-  position: absolute;
-  top: -8%;
-  left: 17%;
-  height: 30px;
-  width: 70%;
-  background-color: #f5a11c;
-  margin: auto;
-  -moz-border-radius-topleft: 90px;
-  -webkit-border-top-left-radius: 90px;
-  border-top-left-radius: 90px;
-  -moz-border-radius-bottomleft: 20px;
-  -webkit-border-bottom-left-radius: 20px;
-  border-bottom-left-radius: 20px;
-}
-
-.towel-bak {
-  position: absolute;
-  top: 10%;
-  left: 17%;
-  height: 30px;
-  width: 60%;
-  background-color: #e8dcd8;
-  margin: auto;
-  -moz-border-radius-topleft: 90px;
-  -webkit-border-top-left-radius: 90px;
-  border-top-left-radius: 90px;
-  -moz-border-radius-topright: 0px;
-  -webkit-border-top-right-radius: 0px;
-  border-top-right-radius: 0px;
-}
-
-.hair-containerd {
-  position: absolute;
-  top: 9.5%;
-  left: 29%;
-  height: 20px;
-  width: 95px;
-  -moz-border-radius-topleft: 90px;
-  -webkit-border-top-left-radius: 90px;
-  border-top-left-radius: 90px;
-  -moz-border-radius-topright: 90px;
-  -webkit-border-top-right-radius: 90px;
-  border-top-right-radius: 90px;
-}
-
-.panel-container {
-  width: 100%;
-  height: 10px;
-  border: 0px solid #ccc;
-  margin: 0 0px;
-  position: absolute;
-  -moz-transform: perspective(1500px) skew(-29deg) rotate(-9deg);
-  -ms-transform: perspective(1500px) skew(-29deg) rotate(-9deg);
-  -webkit-transform: perspective(1500px) skew(-29deg) rotate(-9deg);
-  transform: perspective(1500px) skew(-29deg) rotate(-9deg);
-  left: -1%;
-  top: 9.1%;
-}
-
-#rotate-x .panel {
-  background-size: 100%;
-  background: #f5a11c;
-  width: 87px;
-  height: 100%;
-  min-height: 42px;
-  margin: auto;
-  -moz-transform: perspective(2329px) rotateX(-45deg) translate3d(0px, 0px, 0px);
-  -ms-transform: perspective(2329px) rotateX(-45deg) translate3d(0px, 0px, 0px);
-  -webkit-transform: perspective(2329px) rotateX(-45deg) translate3d(0px, 0px, 0px);
-  transform: perspective(2329px) rotateX(-45deg) translate3d(0px, 0px, 0px);
-  -moz-border-radius-topleft: 1258px;
-  -webkit-border-top-left-radius: 1258px;
-  border-top-left-radius: 1258px;
-  -moz-border-radius-topright: 1258px;
-  -webkit-border-top-right-radius: 1258px;
-  border-top-right-radius: 1258px;
-  -moz-border-radius-bottomleft: 124px;
-  -webkit-border-bottom-left-radius: 124px;
-  border-bottom-left-radius: 124px;
-  -moz-border-radius-bottomright: 127px;
-  -webkit-border-bottom-right-radius: 127px;
-  border-bottom-right-radius: 127px;
-}
-
-.flick-down {
-  position: absolute;
-  height: 30px;
-  width: 87px;
-  background-color: #f5a11c;
-  left: 31%;
-  top: 168%;
-  -moz-transform: skew(-2deg);
-  -ms-transform: skew(-2deg);
-  -webkit-transform: skew(-2deg);
-  transform: skew(-2deg);
-  -moz-border-radius-bottomleft: 100%;
-  -webkit-border-bottom-left-radius: 100%;
-  border-bottom-left-radius: 100%;
-  -moz-border-radius-bottomright: 100%;
-  -webkit-border-bottom-right-radius: 100%;
-  border-bottom-right-radius: 100%;
-  -moz-border-radius-topleft: 67%;
-  -webkit-border-top-left-radius: 67%;
-  border-top-left-radius: 67%;
-  -moz-border-radius-topright: 67%;
-  -webkit-border-top-right-radius: 67%;
-  border-top-right-radius: 67%;
-}
-
-.flick-up {
-  position: absolute;
-  height: 11px;
-  width: 52px;
-  background-color: #f5a11c;
-  left: 56%;
-  top: 198%;
-  -moz-transform: skew(-37deg) rotate(20deg);
-  -ms-transform: skew(-37deg) rotate(20deg);
-  -webkit-transform: skew(-37deg) rotate(20deg);
-  transform: skew(-37deg) rotate(20deg);
-  -moz-border-radius-topright: 100%;
-  -webkit-border-top-right-radius: 100%;
-  border-top-right-radius: 100%;
-}
-
-.flick-up-2 {
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 48px 19px 16px;
-  border-color: transparent transparent #f5a11c transparent;
-  right: 16%;
-  top: 230%;
-  -moz-transform: rotate(180deg) skew(217deg);
-  -ms-transform: rotate(180deg) skew(217deg);
-  -webkit-transform: rotate(180deg) skew(217deg);
-  transform: rotate(180deg) skew(217deg);
-}
-
-.flick-up-2-round {
-  position: absolute;
-  height: 9px;
-  width: 41px;
-  background-color: #f5a11c;
-  left: 62%;
-  top: 277%;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-  -moz-transform: rotate(29deg);
-  -ms-transform: rotate(29deg);
-  -webkit-transform: rotate(29deg);
-  transform: rotate(29deg);
-}
-
-.eyes {
-  position: absolute;
-  height: 150px;
-  width: 150px;
-  -moz-animation: eyes-anim;
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: eyes-anim;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: eyes-anim;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes eyes-anim {
-  0% {
-    left: -8px;
+  .made-with-love a {
+    color: #fff;
+    text-decoration: none;
   }
-  50% {
-    left: 12px;
+  .made-with-love a:hover {
+    text-decoration: underline;
   }
-  100% {
-    left: -8px;
+
+  .table_page{
+    background:#444;
   }
-}
-.eye {
-  position: absolute;
-  height: 20px;
-  width: 20px;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-  background: #1b414c;
-}
 
-.left-eye {
-  top: 35%;
-  left: 18%;
-}
 
-.right-eye {
-  top: 35%;
-  left: 68%;
-}
-
-.mouth {
-  position: absolute;
-  height: 70px;
-  width: 70px;
-  top: 55%;
-  left: 35%;
-}
-
-.right-mouth-part {
-  position: absolute;
-  height: 35px;
-  width: 50%;
-  background: #7e2e33;
-  margin: auto;
-  float: left;
-  top: 3px;
-  left: 31px;
-  -moz-transform: skewY(14deg) rotate(-13deg);
-  -ms-transform: skewY(14deg) rotate(-13deg);
-  -webkit-transform: skewY(14deg) rotate(-13deg);
-  transform: skewY(14deg) rotate(-13deg);
-  -moz-border-radius-topleft: 50%;
-  -webkit-border-top-left-radius: 50%;
-  border-top-left-radius: 50%;
-  -moz-border-radius-bottomleft: 100%;
-  -webkit-border-bottom-left-radius: 100%;
-  border-bottom-left-radius: 100%;
-  -moz-border-radius-topright: 100%;
-  -webkit-border-top-right-radius: 100%;
-  border-top-right-radius: 100%;
-  -moz-border-radius-bottomright: 100%;
-  -webkit-border-bottom-right-radius: 100%;
-  border-bottom-right-radius: 100%;
-  -moz-animation: right-mouth;
-  -moz-animation-duration: 0.3s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: linear;
-  -webkit-animation: right-mouth;
-  -webkit-animation-duration: 0.3s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: linear;
-  animation: right-mouth;
-  animation-duration: 0.3s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: linear;
-}
-
-@keyframes right-mouth {
-  0% {
-    height: 30px;
-    width: 41%;
-    -moz-transform: skewY(11deg) rotate(-15deg);
-    -ms-transform: skewY(11deg) rotate(-15deg);
-    -webkit-transform: skewY(11deg) rotate(-15deg);
-    transform: skewY(11deg) rotate(-15deg);
-    top: 7px;
-    left: 15px;
-    -moz-border-radius-topleft: 0%;
-    -webkit-border-top-left-radius: 0%;
-    border-top-left-radius: 0%;
-    -moz-border-radius-bottomleft: 100%;
-    -webkit-border-bottom-left-radius: 100%;
-    border-bottom-left-radius: 100%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 100%;
-    -webkit-border-bottom-right-radius: 100%;
-    border-bottom-right-radius: 100%;
+  ::-webkit-scrollbar {
+      width: 6px;
+  } 
+  ::-webkit-scrollbar-track {
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
+  } 
+  ::-webkit-scrollbar-thumb {
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
   }
-  50% {
-    height: 40px;
-    width: 62%;
-    background: #7e2e33;
-    margin: auto;
-    float: left;
-    top: -3px;
-    left: 18px;
-    -moz-transform: skewY(-11deg) rotate(-11deg);
-    -ms-transform: skewY(-11deg) rotate(-11deg);
-    -webkit-transform: skewY(-11deg) rotate(-11deg);
-    transform: skewY(-11deg) rotate(-11deg);
-    -moz-border-radius-topleft: 22%;
-    -webkit-border-top-left-radius: 22%;
-    border-top-left-radius: 22%;
-    -moz-border-radius-bottomleft: 102%;
-    -webkit-border-bottom-left-radius: 102%;
-    border-bottom-left-radius: 102%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 70%;
-    -webkit-border-bottom-right-radius: 70%;
-    border-bottom-right-radius: 70%;
+
+  .color_white{
+    color:#fff;
   }
-  100% {
-    height: 30px;
-    width: 41%;
-    -moz-transform: skewY(11deg) rotate(-11deg);
-    -ms-transform: skewY(11deg) rotate(-11deg);
-    -webkit-transform: skewY(11deg) rotate(-11deg);
-    transform: skewY(11deg) rotate(-11deg);
-    top: 7px;
-    left: 15px;
-    -moz-border-radius-topleft: 0%;
-    -webkit-border-top-left-radius: 0%;
-    border-top-left-radius: 0%;
-    -moz-border-radius-bottomleft: 100%;
-    -webkit-border-bottom-left-radius: 100%;
-    border-bottom-left-radius: 100%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 100%;
-    -webkit-border-bottom-right-radius: 100%;
-    border-bottom-right-radius: 100%;
-  }
-}
-.left-mouth-part {
-  position: absolute;
-  height: 30px;
-  width: 50%;
-  background: #7e2e33;
-  margin: auto;
-  float: left;
-  -moz-border-radius-topleft: 100%;
-  -webkit-border-top-left-radius: 100%;
-  border-top-left-radius: 100%;
-  -moz-border-radius-bottomleft: 100%;
-  -webkit-border-bottom-left-radius: 100%;
-  border-bottom-left-radius: 100%;
-  -moz-border-radius-topright: 50%;
-  -webkit-border-top-right-radius: 50%;
-  border-top-right-radius: 50%;
-  -moz-border-radius-bottomright: 50%;
-  -webkit-border-bottom-right-radius: 50%;
-  border-bottom-right-radius: 50%;
-  left: 10px;
-  -moz-animation: left-mouth;
-  -moz-animation-duration: 0.3s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: linear;
-  -webkit-animation: left-mouth;
-  -webkit-animation-duration: 0.3s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: linear;
-  animation: left-mouth;
-  animation-duration: 0.3s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: linear;
-}
-
-@keyframes left-mouth {
-  0% {
-    -moz-transform: skewY(11deg) rotate(-11deg);
-    -ms-transform: skewY(11deg) rotate(-11deg);
-    -webkit-transform: skewY(11deg) rotate(-11deg);
-    transform: skewY(11deg) rotate(-11deg);
-    top: 6px;
-    left: -3px;
-    -moz-border-radius-topleft: 100%;
-    -webkit-border-top-left-radius: 100%;
-    border-top-left-radius: 100%;
-    -moz-border-radius-bottomleft: 100%;
-    -webkit-border-bottom-left-radius: 100%;
-    border-bottom-left-radius: 100%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 100%;
-    -webkit-border-bottom-right-radius: 100%;
-    border-bottom-right-radius: 100%;
-  }
-  50% {
-    height: 31px;
-    width: 61%;
-    background: #7e2e33;
-    margin: auto;
-    float: left;
-    top: 3px;
-    left: -11px;
-    -moz-transform: skewY(8deg) rotate(-7deg);
-    -ms-transform: skewY(8deg) rotate(-7deg);
-    -webkit-transform: skewY(8deg) rotate(-7deg);
-    transform: skewY(8deg) rotate(-7deg);
-    -moz-border-radius-topleft: 100%;
-    -webkit-border-top-left-radius: 100%;
-    border-top-left-radius: 100%;
-    -moz-border-radius-bottomleft: 67%;
-    -webkit-border-bottom-left-radius: 67%;
-    border-bottom-left-radius: 67%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 5%;
-    -webkit-border-bottom-right-radius: 5%;
-    border-bottom-right-radius: 5%;
-  }
-  100% {
-    -moz-transform: skewY(11deg) rotate(-11deg);
-    -ms-transform: skewY(11deg) rotate(-11deg);
-    -webkit-transform: skewY(11deg) rotate(-11deg);
-    transform: skewY(11deg) rotate(-11deg);
-    top: 6px;
-    left: -3px;
-    -moz-border-radius-topleft: 100%;
-    -webkit-border-top-left-radius: 100%;
-    border-top-left-radius: 100%;
-    -moz-border-radius-bottomleft: 100%;
-    -webkit-border-bottom-left-radius: 100%;
-    border-bottom-left-radius: 100%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 100%;
-    -webkit-border-bottom-right-radius: 100%;
-    border-bottom-right-radius: 100%;
-  }
-}
-.mouth-tongue {
-  position: absolute;
-  height: 22px;
-  width: 16px;
-  background-color: #ed5c56;
-  left: 15px;
-  top: 14px;
-  -moz-border-radius-topleft: 100%;
-  -webkit-border-top-left-radius: 100%;
-  border-top-left-radius: 100%;
-  -moz-border-radius-topright: 100%;
-  -webkit-border-top-right-radius: 100%;
-  border-top-right-radius: 100%;
-  -moz-border-radius-bottomleft: 40%;
-  -webkit-border-bottom-left-radius: 40%;
-  border-bottom-left-radius: 40%;
-  -moz-border-radius-bottomright: 30%;
-  -webkit-border-bottom-right-radius: 30%;
-  border-bottom-right-radius: 30%;
-  -moz-animation: mouth-tongue-anim;
-  -moz-animation-duration: 0.3s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: linear;
-  -webkit-animation: mouth-tongue-anim;
-  -webkit-animation-duration: 0.3s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: linear;
-  animation: mouth-tongue-anim;
-  animation-duration: 0.3s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: linear;
-}
-
-@keyframes mouth-tongue-anim {
-  0% {
-    -moz-border-radius-topleft: 50%;
-    -webkit-border-top-left-radius: 50%;
-    border-top-left-radius: 50%;
-    -moz-border-radius-bottomleft: 0%;
-    -webkit-border-bottom-left-radius: 0%;
-    border-bottom-left-radius: 0%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 0%;
-    -webkit-border-bottom-right-radius: 0%;
-    border-bottom-right-radius: 0%;
-    -moz-transform: skew(0deg);
-    -ms-transform: skew(0deg);
-    -webkit-transform: skew(0deg);
-    transform: skew(0deg);
-    top: 13px;
-  }
-  50% {
-    -moz-border-radius-topleft: 100%;
-    -webkit-border-top-left-radius: 100%;
-    border-top-left-radius: 100%;
-    -moz-border-radius-bottomleft: 0%;
-    -webkit-border-bottom-left-radius: 0%;
-    border-bottom-left-radius: 0%;
-    -moz-border-radius-topright: 50%;
-    -webkit-border-top-right-radius: 50%;
-    border-top-right-radius: 50%;
-    -moz-border-radius-bottomright: 0%;
-    -webkit-border-bottom-right-radius: 0%;
-    border-bottom-right-radius: 0%;
-    -moz-transform: skew(-12deg);
-    -ms-transform: skew(-12deg);
-    -webkit-transform: skew(-12deg);
-    transform: skew(-12deg);
-    top: 14px;
-  }
-  100% {
-    -moz-border-radius-topleft: 50%;
-    -webkit-border-top-left-radius: 50%;
-    border-top-left-radius: 50%;
-    -moz-border-radius-bottomleft: 0%;
-    -webkit-border-bottom-left-radius: 0%;
-    border-bottom-left-radius: 0%;
-    -moz-border-radius-topright: 100%;
-    -webkit-border-top-right-radius: 100%;
-    border-top-right-radius: 100%;
-    -moz-border-radius-bottomright: 0%;
-    -webkit-border-bottom-right-radius: 0%;
-    border-bottom-right-radius: 0%;
-    -moz-transform: skew(0deg);
-    -ms-transform: skew(0deg);
-    -webkit-transform: skew(0deg);
-    transform: skew(0deg);
-    top: 13px;
-  }
-}
-.chin {
-  position: absolute;
-  width: 30px;
-  height: 12px;
-  background-color: #f9c19f;
-  top: 77%;
-  right: 40%;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-}
-
-.hair-container {
-  position: relative;
-  -moz-transform: rotate(0deg);
-  -ms-transform: rotate(0deg);
-  -webkit-transform: rotate(0deg);
-  transform: rotate(0deg);
-  top: -430px;
-  -moz-animation: hair-anim;
-  -moz-animation-duration: 1s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: hair-anim;
-  -webkit-animation-duration: 1s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: hair-anim;
-  animation-duration: 1s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes hair-anim {
-  0% {
-    left: -25px;
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-  }
-  10% {
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-  }
-  50% {
-    left: 23px;
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-  }
-  60% {
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-  }
-  100% {
-    left: -25px;
-    -moz-transform: rotateY(0deg);
-    -ms-transform: rotateY(0deg);
-    -webkit-transform: rotateY(0deg);
-    transform: rotateY(0deg);
-  }
-}
-.baby-dummy-container {
-  position: relative;
-  height: 100px;
-  width: 100px;
-  margin: auto;
-  top: -78px;
-  left: -212px;
-}
-
-.baby-dummy-ring {
-  position: relative;
-  height: 30px;
-  width: 30px;
-  margin: auto;
-  border: 6px solid #f5a11c;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-  top: 50%;
-  -moz-box-shadow: -3px -2px 0px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: -3px -2px 0px rgba(0, 0, 0, 0.1);
-  box-shadow: -3px -2px 0px rgba(0, 0, 0, 0.1);
-}
-
-.baby-dummy-base-bottom {
-  position: absolute;
-  height: 25px;
-  width: 20px;
-  background: #7e2e33;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-  top: 35px;
-  left: 48px;
-  -moz-box-shadow: -13px -12px 0px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: -13px -12px 0px rgba(0, 0, 0, 0.1);
-  box-shadow: -13px -12px 0px rgba(0, 0, 0, 0.1);
-}
-
-.baby-dummy-base-middle {
-  position: absolute;
-  height: 15px;
-  width: 50px;
-  background: #7e2e33;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  top: 30px;
-  left: 37px;
-  -moz-transform: rotate(20deg);
-  -ms-transform: rotate(20deg);
-  -webkit-transform: rotate(20deg);
-  transform: rotate(20deg);
-  -moz-box-shadow: -8px 0px 0px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: -8px 0px 0px rgba(0, 0, 0, 0.1);
-  box-shadow: -8px 0px 0px rgba(0, 0, 0, 0.1);
-}
-
-.dummy-chew {
-  position: absolute;
-  -moz-box-sizing: content-box;
-  -webkit-box-sizing: content-box;
-  box-sizing: content-box;
-  width: 29px;
-  height: 24px;
-  border: none;
-  -moz-border-radius: 80% 0 55% 50%/55% 0 80% 50%;
-  -webkit-border-radius: 80%;
-  border-radius: 80% 0 55% 50%/55% 0 80% 50%;
-  font: normal 100%/normal Arial, Helvetica, sans-serif;
-  color: black;
-  -o-text-overflow: clip;
-  text-overflow: clip;
-  background: #e8dcd8;
-  -moz-transform: rotate(136deg) skew(-35deg);
-  -ms-transform: rotate(136deg) skew(-35deg);
-  -webkit-transform: rotate(136deg) skew(-35deg);
-  transform: rotate(136deg) skew(-35deg);
-  left: 54px;
-  top: 4px;
-  -moz-box-shadow: 9px 6px 0px rgba(0, 0, 0, 0.1);
-  -webkit-box-shadow: 9px 6px 0px rgba(0, 0, 0, 0.1);
-  box-shadow: 9px 6px 0px rgba(0, 0, 0, 0.1);
-}
-
-.baby-bottle-container {
-  position: absolute;
-  height: 100px;
-  width: 150px;
-  margin: auto;
-  left: 310px;
-  top: 140px;
-  float: right;
-  -moz-transform: rotate(22deg);
-  -ms-transform: rotate(22deg);
-  -webkit-transform: rotate(22deg);
-  transform: rotate(22deg);
-  -moz-transform-origin: 100% 36% 50%;
-  -ms-transform-origin: 100% 36% 50%;
-  -webkit-transform-origin: 100% 36% 50%;
-  transform-origin: 100% 36% 50%;
-  -moz-animation: bottle-anim;
-  -moz-animation-duration: 4s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: bottle-anim;
-  -webkit-animation-duration: 4s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: bottle-anim;
-  animation-duration: 4s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes bottle-anim {
-  50% {
-    left: 305px;
-    top: 165px;
-    -moz-transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    transform: rotate(0deg);
-  }
-}
-.bottle-glass {
-  position: absolute;
-  height: 64px;
-  width: 88px;
-  background-color: #e8dcd8;
-  margin: auto;
-  top: 18px;
-  right: 15px;
-  -moz-border-radius-topright: 10px;
-  -webkit-border-top-right-radius: 10px;
-  border-top-right-radius: 10px;
-  -moz-border-radius-bottomright: 10px;
-  -webkit-border-bottom-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  -moz-box-shadow: 1px -10px 0px rgba(0, 0, 0, 0.05);
-  -webkit-box-shadow: 1px -10px 0px rgba(0, 0, 0, 0.05);
-  box-shadow: 1px -10px 0px rgba(0, 0, 0, 0.05);
-}
-
-.bottle-rim {
-  position: absolute;
-  height: 80px;
-  width: 20px;
-  background-color: #f3cf9f;
-  margin: auto;
-  top: 10px;
-  right: 90px;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  -moz-box-shadow: 0px -7px 0px rgba(0, 0, 0, 0.05);
-  -webkit-box-shadow: 0px -7px 0px rgba(0, 0, 0, 0.05);
-  box-shadow: 0px -7px 0px rgba(0, 0, 0, 0.05);
-}
-
-.bottle-rim-middle {
-  position: absolute;
-  height: 60px;
-  width: 31px;
-  background-color: #f1b980;
-  margin: auto;
-  top: 20px;
-  right: 95px;
-  -moz-border-radius: 100%;
-  -webkit-border-radius: 100%;
-  border-radius: 100%;
-  -moz-box-shadow: 2px -10px 0px rgba(0, 0, 0, 0.05);
-  -webkit-box-shadow: 2px -10px 0px rgba(0, 0, 0, 0.05);
-  box-shadow: 2px -10px 0px rgba(0, 0, 0, 0.05);
-}
-
-.bottle-rim-chew {
-  position: absolute;
-  height: 26px;
-  width: 31px;
-  background-color: #f1b980;
-  margin: auto;
-  top: 35px;
-  right: 109px;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  -moz-box-shadow: -2px -7px 0px rgba(0, 0, 0, 0.05);
-  -webkit-box-shadow: -2px -7px 0px rgba(0, 0, 0, 0.05);
-  box-shadow: -2px -7px 0px rgba(0, 0, 0, 0.05);
-}
-
-.bottle-measure {
-  position: relative;
-  height: 26px;
-  width: 4px;
-  background-color: #cdd3d7;
-  float: left;
-  margin-left: 10px;
-  left: 14px;
-  top: 6px;
-  -moz-border-radius: 500px;
-  -webkit-border-radius: 500px;
-  border-radius: 500px;
-  -moz-animation: bottle-measure-anim;
-  -moz-animation-duration: 4s;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-delay: 0s;
-  -moz-animation-direction: forwards;
-  -moz-default-animation-timing-function: none;
-  -webkit-animation: bottle-measure-anim;
-  -webkit-animation-duration: 4s;
-  -webkit-animation-iteration-count: infinite;
-  -webkit-animation-delay: 0s;
-  -webkit-animation-direction: forwards;
-  -webkit-default-animation-timing-function: none;
-  animation: bottle-measure-anim;
-  animation-duration: 4s;
-  animation-iteration-count: infinite;
-  animation-delay: 0s;
-  animation-direction: forwards;
-  default-animation-timing-function: none;
-}
-
-@keyframes bottle-measure-anim {
-  50% {
-    top: 30px;
-  }
-}
-
-
 </style>
 
-<div class="full-baby-container">
-	<div class="baby-container">
-		<div class="baby-bottle-container">
-			<div class="bottle">
-				<div class="bottle-glass">
-					<div class="bottle-measure"></div>
-					<div class="bottle-measure"></div>
-				</div>
-				<div class="bottle-rim-chew"></div>
-				<div class="bottle-rim-middle"></div>
-				<div class="bottle-rim"></div>
-			</div>
-		</div>
-		
-		<div class="towel">
-			<div class="towel-band"></div>
-		</div>
-		
-		<div class="baby-head">
-			<div class="baby-face">
-				<div class="eyes">
-					<div class="eye left-eye"></div>
-					<div class="eye right-eye"></div>
-				</div>
-				<div class="mouth">
-					<div class="left-mouth-part"></div>
-					<div class="right-mouth-part"></div>
-					<div class="mouth-tongue"></div>
-				</div>
 
-				<div class="chin"></div>
 
-			</div>
-
-			
-			
-			<div class="hair-container">
-				<div class="panel-container" id="rotate-x">
-
-					 <div class="flick-down"></div>
-					 <div class="flick-up"></div>
-					 <div class="flick-up-2"></div>
-					 <div class="flick-up-2-round"></div>        
-					 <div class="panel"></div>
-				 </div>
-			</div>
-			
-			
-		</div>
-		
-
-	</div>
-	
-	<div class="baby-dummy-container">
-		<div class="dummy-chew"></div>			
-		<div class="baby-dummy-ring"></div>
-		<div class="baby-dummy-base-bottom"></div>
-		<div class="baby-dummy-base-middle"></div>
-	</div>
-	
+<section>
+<h3>問題回報</h3>
+<div id="chart"></div>
+  <div>
+今日問題回報：<?= $count; ?>&nbsp 人</br>
+尚未處理問題：<?= $unsolve; ?>&nbsp 件</br>
+總計處理問題：<?= $solve; ?>&nbsp 件
 </div>
+  <div class="tbl-header">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <thead>
+        <tr>
+          <th>問題編號</th>
+          <th>聯絡人</th>
+          <th>聯絡人身份</th>
+          <th>回報問題</th>
+          <th>發布人聯絡方式</th>
+          <th>發布日期</th>
+          <th>問題狀態</th>
+          <th>結案</th>
+        </tr>	
+      </thead>
+    </table>
+  </div>
+
+  <div class="tbl-content">
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tbody>
+  <?php
+  while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
+  ?>
+      <tr>
+        <td><?= $row['sid'] ?></td>
+        <td><?= $row['cu_name'] ?></td>
+        <td><?= $row['cu_usertype'] ?></td>
+        <td><?= $row['cu_content'] ?></td>
+        <td><?= $row['cu_email'] ?></td>
+        <td><?= $row['cu_time'] ?></td>
+        <td><?php if($row['status']==0){
+                  echo "尚未回覆";
+                  }else{
+                  echo "回覆完成";
+                  }  ?></td>
+        <td><a href="javascript:problem_close(<?= $row['sid'] ?>, '<?= $row['status'] ?>')" style="font-size: 2em; color: white;"><i class="fas fa-clipboard-check"></i></a>
+            <!--  -->
+            </td>
+     </tr>
+        <?php endwhile; ?>
+        </tbody>
+    </table>
+
+    
+
+  </div>
+  <nav class="table_page" aria-label="Page navigation example">
+        <ul class="pagination">
+            <li class="page-item <?= $page==1 ? 'disabled' : ''; ?>"><a class="page-link" href="?page=1">&lt;&lt;</a></li>
+            <li class="page-item <?= $page==1 ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $page-1 ?>">&lt;</a></li>
+            <li class="page-item"><a class="page-link"><?= $page. '/'. $total_pages ?></a></li>
+            <li class="page-item <?= $page==$total_pages ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $page+1 ?>">&gt;</a></li>
+            <li class="page-item <?= $page==$total_pages ? 'disabled' : ''; ?>"><a class="page-link" href="?page=<?= $total_pages ?>">&gt;&gt;</a></li>
+        </ul>
+    </nav>
+    
+</section>
+
+<script>
+//-----------結案api---------------//
+function problem_close(sid, status){
+  fetch('problem_control_solve.php', {
+              method: 'PUT',
+              body: JSON.stringify({'sid':sid, 'status':status}),
+              // 把JSON轉成字串傳送出去
+              headers: new Headers({
+                  'Content-Type': 'application/json'
+              })
+      })
+      .then(res => res.json())
+      // 將回傳的字串轉回JSON
+      .then(data => {
+        alert(data.message);
+        location.reload();
+      })
+}
+//---------------end closure api-------------------//
+
+
+// function delete_report(sid){
+//   fetch(,{
+//     method:'DELETE',
+//     body: JSON.stringify({'sid'}),
+//     header: new Header({
+//       'Content-Type': 'application/json'
+//     })
+//   })
+// }
+
+
+//-------------Pie Chart-----------//
+var json =<?= json_encode([
+    'categories' => ["廠商","網紅"],
+    'count' => [$bs, $ic]
+  ], JSON_UNESCAPED_UNICODE);?>;
+
+
+var pieJson = {};
+  json.categories.forEach(function (categories, index) {
+  pieJson[categories] = json.count[index];
+});
+
+console.log(pieJson)
+
+var solve_json=<?= json_encode([
+    'categories' => ["已結案","未結案"],
+    'count' => [$solve, $unsolve]
+  ], JSON_UNESCAPED_UNICODE);?>
+
+var pieJson_solve = {};
+  solve_json.categories.forEach(function (categories, index) {
+  pieJson_solve[categories] = solve_json.count[index];
+});
+
+console.log(pieJson_solve)
+
+var chart = c3.generate({
+  data: {
+    json: pieJson,
+    type : 'pie',
+    onclick: function (d, i) { console.log("onclick", d, i); },
+    onmouseover: function (d, i) { console.log("onmouseover", d, i); },
+    onmouseout: function (d, i) { console.log("onmouseout", d, i); }
+  }
+  
+});
+//second pie chart
+setInterval(function () {
+  var chart = c3.generate({
+    data: {
+      json:pieJson_solve,
+      type : 'pie',
+    }
+  });
+}, 4000);
+//-----------------end pie chart-----------------------//
+</script>
